@@ -4,6 +4,11 @@
   become_method: sudo
 
   tasks:
+    - name: Check unattended-upgrades status
+      ansible.builtin.shell: if grep -q 1 /etc/apt/apt.conf.d/20auto-upgrades; then echo 'yes'; else echo 'no'; fi
+      register: unattended_upgrades_status
+      when: ansible_facts['os_family'] == "Debian"
+
     - name: Update Debian system
       ansible.builtin.apt:
         name: "*"
@@ -14,7 +19,7 @@
         autoremove: yes
       async: 900
       poll: 30
-      when: ansible_facts['os_family'] == "Debian"
+      when: ansible_facts['os_family'] == "Debian" and unattended_upgrades_status == 'no'
 
     - name: Update RedHat system
       ansible.builtin.dnf:
