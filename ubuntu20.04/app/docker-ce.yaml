@@ -1,0 +1,27 @@
+---
+- import_playbook: python.yaml
+
+- hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Add docker key to apt
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add docker repo to apt
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu stable
+
+    - name: Install docker community edition
+      ansible.builtin.apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: latest
+        update_cache: yes
+      async: 600
+      poll: 30
