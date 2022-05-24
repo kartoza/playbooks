@@ -1,0 +1,47 @@
+---
+- hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Check unattended-upgrades status
+      ansible.builtin.shell: if grep -q 1 /etc/apt/apt.conf.d/20auto-upgrades; then echo 'yes'; else echo 'no'; fi
+      register: unattended_upgrades_status
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Update Debian system
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        force_apt_get: yes
+        update_cache: yes
+        autoclean: yes
+        autoremove: yes
+      async: 900
+      poll: 30
+      when: ansible_facts['os_family'] == "Debian" and unattended_upgrades_status == 'no'
+
+    - name: Update RedHat system
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+        autoremove: yes
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Update Alpine system
+      community.general.apk:
+        name: "*"
+        state: latest
+        update_cache: yes
+        upgrade: yes
+      when: ansible_facts['os_family'] == "Alpine"
+
+    - name: Update SUSE system
+      community.general.zypper:
+        name: "*"
+        state: latest
+        update_cache: yes
+        upgrade: yes
+        clean_deps: yes
+      when: ansible_facts['os_family'] == "Suse"
