@@ -1,0 +1,20 @@
+---
+- import_playbook: init.yaml
+
+- hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Install useful development packages
+      ansible.builtin.apt:
+        pkg:
+          - build-essential
+          - libssl-dev
+          - libffi-dev
+          - python3-dev
+          - python3-venv
+        state: latest
+        update_cache: yes
+      async: 600
+      poll: 30

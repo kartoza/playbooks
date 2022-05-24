@@ -1,0 +1,36 @@
+---
+- import_playbook: init.yaml
+
+- hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Rate limit ssh
+      community.general.ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+
+    - name: Add crowdsec key to apt
+      ansible.builtin.apt_key:
+        url: https://packagecloud.io/crowdsec/crowdsec/gpgkey
+        keyring: /etc/apt/trusted.gpg.d/crowdsec.gpg
+
+    - name: Add crowdsec repo to apt
+      ansible.builtin.apt_repository:
+        repo: deb https://packagecloud.io/crowdsec/crowdsec/ubuntu focal main
+
+    - name: Install security related packages
+      ansible.builtin.apt:
+        pkg:
+          - lsof
+          - tcpdump
+          - fail2ban
+          - sshguard
+          - crowdsec
+          - crowdsec-firewall-bouncer-iptables
+        state: latest
+        update_cache: yes
+      async: 600
+      poll: 30

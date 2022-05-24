@@ -1,0 +1,23 @@
+---
+- import_playbook: init.yaml
+
+- hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Install useful system packages
+      apt:
+        pkg:
+          - lsb-release
+          - ca-certificates
+          - apt-transport-https
+          - software-properties-common
+          - curl
+          - vim
+          - git
+          - gnupg
+        state: latest
+        update_cache: yes
+      async: 600
+      poll: 30
